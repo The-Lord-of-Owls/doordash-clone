@@ -1,24 +1,16 @@
 import { Component } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
-import { jsPDF } from "jspdf"
+import { OrderEntryComponent } from './order-entry/order-entry.component'
 
 @Component({
 	selector: 'app-root',
 	standalone: true,
-	imports: [ RouterOutlet ],
+	imports: [ RouterOutlet, OrderEntryComponent ],
 	templateUrl: './app.component.html',
 	styleUrl: './app.component.scss'
 })
 export class AppComponent {
 	title = 'doordash-clone'
-	fileContent = "<h1>Hello World!</h1>"
-	filePath = "helloworld.pdf"
-
-	generatePDF() {
-		const doc = new jsPDF()
-
-		doc.html( this.fileContent, {
-			callback: pdf => pdf.save( this.filePath )
-		} )
-	}
 }
+
+
