@@ -1,20 +1,9 @@
 import { Component, Input } from '@angular/core'
 import { jsPDF } from "jspdf"
 
-interface productInfo {
-	id: number
-	name: string
-	price: number
-	quantity: number
-}
+import { productInfo } from '../interfaces/product-info'
+import { orderDetails } from '../interfaces/order-details'
 
-interface orderDetals {
-	items: Array<productInfo>
-	subTotal: number
-	currency: string
-	deliveryAddress: string
-	generatedHTML?: string
-}
 
 @Component({
 	selector: 'app-order-entry',
@@ -34,7 +23,7 @@ interface orderDetals {
 export class OrderEntryComponent {
 	@Input() orderID = ""
 
-	orderDetails: orderDetals = {
+	orderDetails: orderDetails = {
 		items: [],
 		subTotal: 0,
 		currency: "USD",
