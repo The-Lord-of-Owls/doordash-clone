@@ -1,12 +1,15 @@
-import { Component } from '@angular/core';
+import { Component } from '@angular/core'
 
-@Component({
-  selector: 'app-address-selector',
-  standalone: true,
-  imports: [],
-  templateUrl: './address-selector.component.html',
-  styleUrl: './address-selector.component.scss'
-})
+@Component( {
+  	selector: 'app-address-selector',
+  	standalone: true,
+  	imports: [],
+  	template: `<p>address-selector works!</p>`,
+  	styleUrl: './address-selector.component.scss'
+} )
+
 export class AddressSelectorComponent {
 
 }
+
+

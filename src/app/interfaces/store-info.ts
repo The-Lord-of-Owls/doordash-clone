@@ -13,3 +13,5 @@ export interface storeInfo {
 	acceptedCurrencies: Array<currencyInfo>
 	products: Array<productInfo>
 }
+
+

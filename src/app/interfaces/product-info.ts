@@ -4,3 +4,5 @@ export interface productInfo {
 	price: number
 	quantity: number
 }
+
+

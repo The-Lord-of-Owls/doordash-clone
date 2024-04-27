@@ -3,54 +3,59 @@ import { jsPDF } from "jspdf"
 
 import { productInfo } from '../interfaces/product-info'
 import { orderDetails } from '../interfaces/order-details'
+import { ButtonComponent } from '../button/button.component'
 
-
-@Component({
+@Component( {
 	selector: 'app-order-entry',
   	standalone: true,
-	imports: [],
-	template: `<div>
-		<h2>Order: {{ orderID }}</h2>
-		<h6>Subtotal: $ {{ orderDetails.subTotal }} {{ orderDetails.currency }}</h6>
-		<button (click)="saveReceipt()">Save Receipt</button>
-		<button (click)="downloadReceipt()">Save Receipt PDF</button>
-		<button (click)="removeReceipt()">Remove Saved Receipt</button>
-		<button (click)="clearReceipts()">Clear Saved Receipts</button>
+	imports: [ ButtonComponent ],
+	template: `<div class="entrycard">
+		<h2>Order: {{ OrderInfo.id }}</h2>
+		<h6>Subtotal: $ {{ OrderInfo.subTotal }} {{ OrderInfo.currency }}</h6>
+
+		<app-button [icon]="checkIcon" (buttonClick)="saveReceipt($event)">Save Receipt</app-button>
+		<app-button [icon]="checkIcon" (buttonClick)="downloadReceipt($event)">Save Receipt PDF</app-button>
+		<app-button [icon]="checkIcon" (buttonClick)="removeReceipt($event)">Remove Saved Receipt</app-button>
+		<app-button [icon]="checkIcon" (buttonClick)="clearReceipts($event)">Clear Saved Receips</app-button>
 	</div>`,
 	styleUrl: './order-entry.component.scss'
-})
+} )
 
 export class OrderEntryComponent {
-	@Input() orderID = ""
-
-	orderDetails: orderDetails = {
+	@Input() OrderInfo: orderDetails = {
+		id: "",
 		items: [],
 		subTotal: 0,
 		currency: "USD",
 		deliveryAddress: "1234 Pizza St, Dallas TX"
 	}
 
+	checkIcon: string = "fa-check"
+
 	constructor() {}
+
+	eventReceived( response: string ) {
+		console.log( response )
+	}
 
 	//Order Building
 	addItem( newItem: productInfo ) {
 		let found: boolean = false
 		let entry: number = -1
 
-		this.orderDetails.items.forEach( ( item: productInfo, index: number ) => {
+		this.OrderInfo.items.forEach( ( item: productInfo, index: number ) => {
 			if ( item.id === newItem.id ) {
 				found = true
 				entry = index
 			}
 		} )
 
-		if ( !found ) {
-			this.orderDetails.items.push( newItem )
-		} else if ( found && entry >= 0 ) {
-			this.orderDetails.items[ entry ].quantity += 1
-		}
+		found ? () => {
+			if ( entry >= 0 ) this.OrderInfo.items[ entry ].quantity += 1
+		} : this.OrderInfo.items.push( newItem )
 
-		this.orderDetails.subTotal = this.calculateSubTotal()
+
+		this.OrderInfo.subTotal = this.calculateSubTotal()
 	}
 
 	removeItem( removableItem: productInfo ) {
@@ -58,7 +63,7 @@ export class OrderEntryComponent {
 		let entry: number = -1
 		let quantity: number = 0
 
-		this.orderDetails.items.forEach( ( item: productInfo, index: number ) => {
+		this.OrderInfo.items.forEach( ( item: productInfo, index: number ) => {
 			if ( item.id === removableItem.id ) {
 				found = true
 				entry = index
@@ -66,27 +71,23 @@ export class OrderEntryComponent {
 			}
 		} )
 
-		if ( found && quantity === 1 ) {
-			this.orderDetails.items.splice( entry, 1 )
-		} else if ( found && quantity > 1 ) {
-			this.orderDetails.items[ entry ].quantity -= 1
-		}
+		if ( found ) quantity === 1 ? this.OrderInfo.items.splice( entry, 1 ) : this.OrderInfo.items[ entry ].quantity -= 1
 
-		this.orderDetails.subTotal = this.calculateSubTotal()
+		this.OrderInfo.subTotal = this.calculateSubTotal()
 	}
 
 	setCurrency( currency: string ) {
-		this.orderDetails.currency = currency
+		this.OrderInfo.currency = currency
 	}
 
 	setAddress( address: string ) {
-		this.orderDetails.deliveryAddress = address
+		this.OrderInfo.deliveryAddress = address
 	}
 
 	calculateSubTotal() {
 		let cost = 0
 
-		this.orderDetails.items.forEach( ( item: productInfo ) => {
+		this.OrderInfo.items.forEach( ( item: productInfo ) => {
 			cost += item.price * item.quantity
 		} )
 
@@ -96,52 +97,48 @@ export class OrderEntryComponent {
 	//Storage and reciept handling
 	generatePDFHtml() {
 		//Provide a downloadable receipt
-		let fileContent = `
-			<h3>OrderDetails</h3
+		let fileContent = `<h3>Order Details</h3
 			<p>Below are the details of your order</p>	
 			<h4>Items:</h4>
-			<ol>
-		`
+		<ol>`
 
-		this.orderDetails.items.forEach( ( item: productInfo ) => {
+		this.OrderInfo.items.forEach( ( item: productInfo ) => {
 			fileContent += `<li>${ item.name } @ ${ item.price }</li>`
 		} )
 
-		fileContent += '</ol>'
-
-		return fileContent
+		return fileContent += '</ol>'
 	}
 
-	saveReceipt() {
+	saveReceipt( data: string ) {
 		//Store a copy of the receipt in local storage
-		this.orderDetails.generatedHTML = this.generatePDFHtml()
-		localStorage.setItem( `order_${ this.orderID }`, JSON.stringify( this.orderDetails ) )
+		this.OrderInfo.generatedHTML = this.generatePDFHtml()
+		localStorage.setItem( `order_${ this.OrderInfo.id }`, JSON.stringify( this.OrderInfo ) )
 	}
 
-	downloadReceipt() {
+	downloadReceipt( data: string ) {
 		//Save local copy to browser
-		this.saveReceipt()
+		this.saveReceipt( data )
 
 		//Check if we loaded correctly
-		if ( !this.orderDetails.items ) return;
+		if ( !this.OrderInfo.items ) return;
 
 		//Provide a downloadable receipt
 		const doc = new jsPDF()
-		doc.html( this.orderDetails.generatedHTML || this.generatePDFHtml(), {
-			callback: pdf => pdf.save( `order_${ this.orderID }.pdf` )
+		doc.html( this.OrderInfo.generatedHTML || this.generatePDFHtml(), {
+			callback: pdf => pdf.save( `order_${ this.OrderInfo.id }.pdf` )
 		} )
 	}
 
-	removeReceipt() {
+	removeReceipt( data: string ) {
 		//Remove the copy of the receipt
-		localStorage.removeItem( `order_${ this.orderID }` )
+		localStorage.removeItem( `order_${ this.OrderInfo.id }` )
 
 		//figure out how to make this thing able to remove itself
 		//this.remove() //Does not work
 		//this.delete() //Does not work
 	}
 
-	clearReceipts() {
+	clearReceipts( data: string ) {
 		//Remove all records of the receipt from local storage
 		localStorage.clear()
 	}

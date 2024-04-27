@@ -4,3 +4,5 @@ export interface currencyInfo {
 	valueRatio: number			//how we convert from this currency to our main currency
 	description: string			//description of what the currency is
 }
+
+
